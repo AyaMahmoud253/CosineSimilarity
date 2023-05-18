@@ -1,12 +1,16 @@
 package Ass2;
-
+import java.util.Comparator;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -35,10 +39,10 @@ class DictEntry {
     }
 }
 
-class InvertedIndex {
+class InvertedIndex1 {
     Map<String, DictEntry> index;
 
-    public InvertedIndex() {
+    public InvertedIndex1() {
         this.index = new HashMap<>();
     }
 
@@ -139,40 +143,40 @@ class InvertedIndex {
     }
 }
 
-public class CosineSimilarity {
+	public class InvertedIndex {
+		public static void main(String[] args) throws IOException {
+		    String[] filenames = {"0.txt","1.txt","2.txt","3.txt","4.txt","5.txt","6.txt","7.txt","8.txt","9.txt"};
+		    InvertedIndex1 index = new InvertedIndex1();
+		    index.buildIndex(filenames);
 
-	public static void main(String[] args) throws IOException {
-	    String[] filenames = {"0.txt","1.txt","2.txt","3.txt","4.txt","5.txt","6.txt","7.txt","8.txt","9.txt"};
-	    InvertedIndex index = new InvertedIndex();
-	    index.buildIndex(filenames);
+		    Scanner sc= new Scanner(System.in);
+		    System.out.print("Enter a query: ");
+		    String query = sc.nextLine();
 
-	    Scanner sc= new Scanner(System.in);
-	    System.out.print("Enter a query: ");
-	    String query = sc.nextLine();
+		    Map<Integer, Double> resultMap = index.cosineSimilarity(query);
+	        
+	        // Sort the map by value in descending order
+	        Map<Integer, Double> sortedMap = sortByValue(resultMap);
+	        
+		    int k = 3;
+		    for (Map.Entry<Integer, Double> entry : sortedMap.entrySet()) {
+		        if (k-- == 0) break; 
+		        System.out.println((10 - k) + ". " + filenames[entry.getKey()]);
+		    }
+		}
 
-	    Map<Integer, Double> resultMap = index.cosineSimilarity(query);
-	    int k = 3;
-	    int[] sortedIndices = getTopK(resultMap, k);
-	    for (int i = 0; i < k; i++) {
-	        System.out.println((i+1) + ". " + filenames[sortedIndices[i]]);
+	    public static Map<Integer, Double> sortByValue(Map<Integer, Double> map) {
+	        List<Map.Entry<Integer, Double>> list = new LinkedList<>(map.entrySet());
+	        Collections.sort(list, new Comparator<Map.Entry<Integer, Double>>() {
+	            public int compare(Map.Entry<Integer, Double> o1, Map.Entry<Integer, Double> o2) {
+	                return (o2.getValue()).compareTo(o1.getValue());
+	            }
+	        });
+
+	       Map<Integer, Double> result = new LinkedHashMap<>();
+	        for (Map.Entry<Integer, Double> entry : list) {
+	            result.put(entry.getKey(), entry.getValue());
+	        }
+	        return result;
 	    }
 	}
-
-    public static int[] getTopK(Map<Integer, Double> scores, int k) {
-        int[] sortedIndices = new int[scores.size()];
-        int i = 0;
-        for (Map.Entry<Integer, Double> entry : scores.entrySet()) {
-            sortedIndices[i++] = entry.getKey();
-        }
-        for (i = 0; i < sortedIndices.length - 1; i++) {
-            for (int j = i + 1; j < sortedIndices.length; j++) {
-                if (scores.get(sortedIndices[i]) < scores.get(sortedIndices[j])) {
-                    int temp = sortedIndices[i];
-                    sortedIndices[i] = sortedIndices[j];
-                    sortedIndices[j] = temp;
-                }
-            }
-        }
-        return sortedIndices.length > k ? Arrays.copyOfRange(sortedIndices, 0, k) : sortedIndices;
-    }
-}
