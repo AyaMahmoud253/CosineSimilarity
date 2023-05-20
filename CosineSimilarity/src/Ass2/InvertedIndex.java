@@ -64,7 +64,7 @@ public class InvertedIndex {
                 queryVector.put(word, 1);
             }
         }
-       
+
         Map<String, Double> cosineSimilarities = new HashMap<>();
         for (String file : index.values().stream().flatMap(List::stream).distinct().toArray(String[]::new)) {
             Map<String, Integer> documentVector = new HashMap<>();
@@ -107,70 +107,9 @@ public class InvertedIndex {
 
         return new Pair<>(rankedFiles, cosineSimilarities);
     }
-    public Map<Pair<String, String>, Double> calculateAllSimilarities() {
-        Map<Pair<String, String>, Double> similarities = new HashMap<>();
-
-        // Calculate similarity for each pair of documents
-        for (String file1 : index.values().stream().flatMap(List::stream).distinct().toArray(String[]::new)) {
-            for (String file2 : index.values().stream().flatMap(List::stream).distinct().toArray(String[]::new)) {
-                if (file1.equals(file2)) {
-                    continue; // Skip the same document
-                }
-
-                // Calculate similarity between file1 and file2
-                double similarity = calculateSimilarity(file1, file2);
-                similarities.put(new Pair<>(file1, file2), similarity);
-            }
-        }
-
-        return similarities;
-    }
-
-    private double calculateSimilarity(String file1, String file2) {
-        Map<String, Integer> document1Vector = getDocumentVector(file1);
-        Map<String, Integer> document2Vector = getDocumentVector(file2);
-
-        double dotProduct = 0.0;
-        double document1Magnitude = 0.0;
-        double document2Magnitude = 0.0;
-
-        // Calculate dot product and magnitudes
-        for (Map.Entry<String, Integer> entry : document1Vector.entrySet()) {
-            String word = entry.getKey();
-            int document1Frequency = entry.getValue();
-            int document2Frequency = document2Vector.getOrDefault(word, 0);
-            dotProduct += document1Frequency * document2Frequency;
-            document1Magnitude += document1Frequency * document1Frequency;
-        }
-
-        for (Map.Entry<String, Integer> entry : document2Vector.entrySet()) {
-            int frequency = entry.getValue();
-            document2Magnitude += frequency * frequency;
-        }
-
-        // Calculate cosine similarity
-        return dotProduct / (Math.sqrt(document1Magnitude) * Math.sqrt(document2Magnitude));
-    }
-
-    private Map<String, Integer> getDocumentVector(String file) {
-        Map<String, Integer> documentVector = new HashMap<>();
-
-        try (Scanner scanner = new Scanner(new File(file))) {
-            while (scanner.hasNext()) {
-                String word = scanner.next().toLowerCase();
-                documentVector.put(word, documentVector.getOrDefault(word, 0) + 1);
-            }
-        } catch (FileNotFoundException e) {
-            System.out.println("File not found: " + file);
-        }
-
-        return documentVector;
-    }
-
 
     public static void main(String[] args) {
-        //String[] files = {"0.txt", "1.txt", "2.txt","3.txt", "4.txt", "5.txt", "6.txt", "7.txt", "8.txt", "9.txt"};
-    	String[] files = {"0.txt", "1.txt"};
+        String[] files = {"0.txt", "1.txt", "2.txt","3.txt", "4.txt", "5.txt", "6.txt", "7.txt", "8.txt", "9.txt"};
         InvertedIndex index = new InvertedIndex();
         index.buildIndex(files);
        
@@ -183,17 +122,9 @@ public class InvertedIndex {
         Pair<List<String>, Map<String, Double>> result = index.search(query);
         System.out.println("Ranked files:");
         for (String file : result.getKey()) {
-            System.out.println(file );
-        }
+            System.out.println(file+" CosineSimilarty : " + result.getValue().get(file) );
 
-        // Calculate all document similarities
-        Map<Pair<String, String>, Double> allSimilarities = index.calculateAllSimilarities();
-        System.out.println("All document similarities:");
-        for (Map.Entry<Pair<String, String>, Double> entry : allSimilarities.entrySet()) {
-            Pair<String, String> documentPair = entry.getKey();
-            double similarity = entry.getValue();
-            System.out.println(documentPair.getKey() + " and " + documentPair.getValue() + " Similarity: " + similarity);
-        }
-
+        
     }
+}
 }
